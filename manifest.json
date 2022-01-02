@@ -1,0 +1,28 @@
+{
+    "name": "Chesstempo Stats Collector",
+    "version": "1.0.0",
+    "manifest_version": 3,
+    "description": "Autofills the tactics form with the results of your session",
+    "options_page": "options.html",
+    "host_permissions": ["*://*.chesstempo.com/chess-tactics/*"],
+    "content_scripts": [
+      {
+        "matches": ["*://*.chesstempo.com/chess-tactics/*"],
+        "js": ["index.js"],
+        "run_at": "document_end"
+      }
+    ],
+    
+    "background": {
+        "service_worker": "background.js"
+    },
+
+    "action": {
+      "default_popup": "popup.html",
+      "default_title": "Quick Settings"
+    },
+
+    "permissions": [
+      "storage"
+    ]
+  }
