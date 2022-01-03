@@ -1,4 +1,4 @@
-Data scraper for chesstempo sessions
+# Data scraper for chesstempo sessions
 
 1. Clone this github project 
 2. In Chrome, navigate to chrome://extensions
