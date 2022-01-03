@@ -4,7 +4,7 @@
  * yee
  */
 
-const URL_TEMPLATE = 'https://docs.google.com/forms/d/e/1FAIpQLSdAbD54b89HQ2nnJCogA9xywM6xipZRW-Ypmv4yrRe7zfkHjw/viewform?usp=pp_url&entry.519527697=--NAME--&entry.1865490181=chesstempo.com&entry.998935734=--DATE--&entry.352418711=--CORRECT--&entry.431322962=--INCORRECT--&entry.1222723949=--INITIAL--&entry.246485611=--FINAL--&entry.1207811428=--TIME--&entry.1471852977=comments'
+const URL_TEMPLATE = 'https://docs.google.com/forms/d/e/1FAIpQLSdAbD54b89HQ2nnJCogA9xywM6xipZRW-Ypmv4yrRe7zfkHjw/viewform?usp=pp_url&entry.519527697=--NAME--&entry.1865490181=chesstempo.com&entry.998935734=--DATE--&entry.352418711=--CORRECT--&entry.431322962=--INCORRECT--&entry.1222723949=--INITIAL--&entry.246485611=--FINAL--&entry.1207811428=--TIME--'
 let observer = new MutationObserver(waitForButton);
 let firstLast = 'no name set';
 let endSession = document.getElementsByClassName('ct-problem-end-session-button')[0];
