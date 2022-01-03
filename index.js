@@ -1,56 +1,68 @@
-console.log('hello chesstempo');
+/**
+ * Chesstempo Session Data Scraper
+ * for GT Chess Club 100 Days of Tactics
+ * yee
+ */
 
-let observer = new MutationObserver(waitForSessionData);
+const URL_TEMPLATE = 'https://docs.google.com/forms/d/e/1FAIpQLSdAbD54b89HQ2nnJCogA9xywM6xipZRW-Ypmv4yrRe7zfkHjw/viewform?usp=pp_url&entry.519527697=--NAME--&entry.1865490181=chesstempo.com&entry.998935734=--DATE--&entry.352418711=--CORRECT--&entry.431322962=--INCORRECT--&entry.1222723949=--INITIAL--&entry.246485611=--FINAL--&entry.1207811428=--TIME--&entry.1471852977=comments'
+let observer = new MutationObserver(waitForButton);
+let firstLast = 'no name set';
+let endSession = document.getElementsByClassName('ct-problem-end-session-button')[0];
+
 observer.observe(document, {subtree: true, childList: true});
 
-/**
- * Form URL:
- * https://docs.google.com/forms/d/e/1FAIpQLSdAbD54b89HQ2nnJCogA9xywM6xipZRW-Ypmv4yrRe7zfkHjw/viewform?usp=pp_url&entry.519527697=firstLast&entry.1865490181=chesstempo.com&entry.998935734=2022-01-02&entry.352418711=111&entry.431322962=222&entry.1222723949=3333&entry.246485611=4444&entry.1207811428=55&entry.1471852977=comments
- */
-/**
- * PAGE ELEMENTS:
- * apparently the ct number can change. booooo
- * endsession button doesn't seem to change though
- * 
- * end session: id = ct-56
- * 
- * total rating change: id = ct-192
- * ct-session-summary-table
- * time: class = ct-elev--z1
- * <ct-clock count-up="true" show-fractional="false" set-title="false" 
- * always-show-seconds="true" data-id="problem-session" class="ct-elev--z1 ct-clock-ticking" 
- * role="timer">21:12</ct-clock>
- * 
- * <ct-clock count-up="true" show-fractional="false" set-title="false"
- *  always-show-seconds="true" data-id="tactics" class="ct-elev--z4 ct-clock-not-ticking"
- *  role="timer">00:23</ct-clock>
- * result rating: id=ct-195
- * class = ct-rating-result-rating; there's 2 of these, probably the first 1 is a good bet
- */
+chrome.storage.local.get('user_name', function(result){
+    console.log(result);
+    firstLast = result.user_name;
+});
 
-let rating = document.getElementsByClassName('ct-rating-result-rating')[0];
-let endSession = document.getElementById('ct-56');
-let time = document.getElementsByClassName('ct-elev--z1')[0];
-let change = document.getElementsByClassName('ct-session-summary-table')[0];
-
-function waitForSessionData(){
-    console.log('waiting for session data...');
-    if(endSession == null)
-        endSession = document.getElementById('ct-56');
-    if(rating == null)
-        rating = document.getElementsByClassName('ct-rating-result-rating')[0];
-    if(time == null)
-        time = document.getElementsByClassName('ct-elev--z1')[0];   
-    if(change == null)
-        change = document.getElementsByClassName('ct-session-summary-table')[0];
-
-    if(endSession != null && rating != null && time != null && change != null){
-        change = change.children[1].children[0].children[1];
-        console.log('observer ending...');
-        console.log(rating);
+function waitForButton(){
+    if (endSession == null)
+        endSession = document.getElementsByClassName('ct-problem-end-session-button')[0];
+    if (endSession != null){
+        endSession.addEventListener('click', collectData);
+        console.log('found end session button...');
         console.log(endSession);
-        console.log(time);
-        console.log(change);
-        observer.disconnect();        
+        observer.disconnect();
     }
+}
+
+function collectData(){
+    let rating = document.getElementsByClassName('ct-rating-result-rating')[0];
+    let time = document.getElementsByClassName('ct-elev--z1')[0];
+    let change = document.getElementsByClassName('ct-session-summary-table')[0];    
+    let correctDone = document.getElementsByClassName('ct-session-summary-correct-done')[0];
+
+    const finalRating = parseInt(rating.innerHTML);
+    const totalCorrect = correctDone.innerHTML.split('/');
+    const correct = parseInt(totalCorrect[0]);
+    const incorrect = parseInt(totalCorrect[1]) - correct;
+    const totalChange = change.children[1].children[0].children[1].innerHTML;
+    const initialRating = finalRating - parseInt(totalChange);
+
+    //TODO: make sure handling hour long session works correctly
+    let timeValues = time.innerHTML.split(':');
+    let totalTime = 0;
+    if (timeValues.length > 2){
+        let hour = parseInt(timeValues[0]);
+        totalTime = 60 * hour + parseInt(timeValues[1]);
+    }
+    else totalTime = parseInt(timeValues[0]);
+    
+    // https://stackoverflow.com/questions/23593052/format-javascript-date-as-yyyy-mm-dd
+    let today = new Date();
+    const offset = today.getTimezoneOffset();
+    today = new Date(today.getTime() - (offset*60*1000));
+    let date = today.toISOString().split('T')[0];
+
+    let form_URL = URL_TEMPLATE.replace('--NAME--', firstLast)
+                       .replace('--DATE--', date)
+                       .replace('--CORRECT--', correct)
+                       .replace('--INCORRECT--', incorrect)
+                       .replace('--INITIAL--', initialRating)
+                       .replace('--TIME--', totalTime)
+                       .replace('--FINAL--', finalRating);
+    
+    // https://docs.google.com/forms/d/e/1FAIpQLSdAbD54b89HQ2nnJCogA9xywM6xipZRW-Ypmv4yrRe7zfkHjw/viewform?usp=pp_url&entry.519527697=--NAME--&entry.1865490181=chesstempo.com&entry.998935734=--DATE--&entry.352418711=--CORRECT--&entry.431322962=--INCORRECT--&entry.1222723949=--INITIAL--&entry.246485611=--FINAL--&entry.1207811428=--TIME--&entry.1471852977=comments
+    window.open(form_URL, '_blank');
 }
